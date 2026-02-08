@@ -1,15 +1,30 @@
-# context-aware-object-detection
-# Smart Workspace Monitor using context aware object detction 
+# Smart Workspace Monitor ( using context aware object detection)
 
-A computer vision system that detects desk objects using YOLO and classifies workspaces as "Focused" or "Distracting".
 
-## Project Goal
-Build a context-aware object detection system for productivity monitoring.
+# A context-aware computer vision system that detects desk objects using YOLO and classifies # workspaces as "Focused" or "Distracting" using machine learning.
 
-## Quick Start
-```bash
-# Install dependencies
-pip install -r requirements.txt
+## Project Overview
 
-# Run webcam demo
-python src/webcam_demo.py
+This project combines:
+- **YOLOv8** for real-time object detection
+- **Feature extraction** from detected objects
+- **Context classification** (Focused vs Distracting)
+- **OpenCV** for visualization
+
+## Features
+
+- Real-time desk object detection
+- Workspace context classification
+- Webcam integration
+- Productivity scoring
+- Feature extraction and analysis
+
+## Tech Stack
+
+- **YOLOv8** (Ultralytics) - Object detection
+- **PyTorch** - Feature extraction
+- **TensorFlow** - Context classification
+- **OpenCV** - Image processing
+- **NumPy/Pandas** - Data handling
+
+## 📁 Project Structure

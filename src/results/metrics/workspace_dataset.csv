@@ -1,0 +1,3 @@
+total_objects,productive_count,distracting_count,neutral_count,count_person,count_laptop,count_mouse,count_keyboard,count_cell phone,count_book,count_cup,count_bottle,count_chair,count_dining table,count_tv,count_remote,productive_ratio,distracting_ratio,focused_score,avg_object_area,max_object_area,total_area_coverage,avg_confidence,center_x_mean,center_y_mean,position_variance,clutter_score,has_laptop,has_phone,has_book,has_person,image_filename,label
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.5,0.5,0.0,0.0,0,0,0,0,sample_desk.jpg,unlabeled
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.5,0.5,0.0,0.0,0,0,0,0,sample_real_desk.jpg,unlabeled
