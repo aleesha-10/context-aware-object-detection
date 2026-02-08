@@ -1,0 +1,19 @@
+# Core ML/CV Libraries (Python 3.13 compatible)
+ultralytics>=8.2.0
+opencv-python>=4.9.0
+numpy>=1.26.0
+torch>=2.5.0 --index-url https://download.pytorch.org/whl/cpu
+torchvision>=0.20.0 --index-url https://download.pytorch.org/whl/cpu
+tensorflow>=2.18.0
+
+# Utilities
+matplotlib>=3.9.0
+seaborn>=0.13.0
+scikit-learn>=1.6.0
+jupyter>=1.0.0
+pillow>=10.4.0
+
+# Project Management
+python-dotenv>=1.0.0
+tqdm>=4.66.0
+pandas>=2.2.0
