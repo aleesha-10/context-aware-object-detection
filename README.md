@@ -97,7 +97,10 @@ smart-workspace-monitor/
 │   ├── train_context_model.py   # Phase 3 — train the classifier
 │   ├── predict_context.py       # Phase 3 — predict on a single image
 │   ├── webcam_demo.py           # Phase 4 — real-time webcam demo
-│   └── quick_test.py            # sanity check: webcam + YOLO working?
+│   |── quick_test.py            # sanity check: webcam + YOLO working?
+|   ├── feature_extraction_demo.py   # interactive feature extraction demo
+|
+├── test_with_real_images.py     # test pipeline on real desk images
 │
 ├── results/
 │   └── metrics/             # confusion matrix, ROC curve, training plots
