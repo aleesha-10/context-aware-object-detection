@@ -1,29 +1,7 @@
 # Smart Workspace Monitor
 ### Context-aware object detection for productivity
 
-A computer vision system that detects desk objects using YOLOv8 and classifies workspaces as **Focused** or **Distracted** using machine learning.
-
----
-
-## Project Overview
-
-This project combines:
-- **YOLOv8** for real-time object detection
-- **Feature extraction** from detected objects
-- **Context classification** (Focused vs Distracted)
-- **OpenCV** for visualization
-
-## Features
-
-- Real-time desk object detection
-- Workspace context classification
-- Webcam integration with live overlay
-- Productivity scoring with smoothed predictions
-- Feature extraction and analysis pipeline
-
----
-
-## Tech Stack
+A computer vision system that watches your desk through a webcam, detects objects using YOLOv8, and classifies your workspace as **Focused** or **Distracted** in real time — with a live overlay showing what it sees and why.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.13+-orange)
@@ -31,13 +9,69 @@ This project combines:
 ![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-purple)
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.8+-green)
 
-| Tool | Role |
-|------|------|
-| YOLOv8n (Ultralytics) | Object detection |
-| TensorFlow | Context classifier |
-| PyTorch / NumPy | Feature extraction utilities |
-| OpenCV | Visualization & webcam capture |
-| Pandas / scikit-learn | Data handling & evaluation |
+---
+
+## What This Project Does
+
+Most productivity tools track time or block websites. This project takes a different approach — it looks at your physical workspace and decides whether you look like you're working or getting distracted, based on what objects are visible on your desk.
+
+Point a webcam at your desk. The system detects objects like laptops, books, phones, and keyboards. It then computes a set of features from those detections — how many productive vs distracting items are visible, how cluttered the desk looks, what percentage of the frame is covered — and feeds those features into a small machine learning classifier that outputs a single verdict: **Focused** or **Distracted**, along with a confidence score.
+
+The entire pipeline runs locally on CPU, in real time.
+
+---
+
+## How It Works — The Full Pipeline
+
+```
+![Pipeline](docs/pipeline.png)
+```
+
+Each stage is a separate, independently runnable module. You can swap out the classifier, change the feature set, or plug in a different detector without touching the rest.
+
+---
+
+## The Technology — Brief Explanations
+
+### Object Detection with YOLOv8
+YOLO (You Only Look Once) is a real-time object detection model. Given an image, it draws bounding boxes around every recognizable object and labels each one with a class name and confidence score. This project uses **YOLOv8 nano** — the smallest, fastest variant — pretrained on the COCO dataset, which includes 80 common object classes including most desk items.
+
+No training was needed for the detection stage. The pretrained weights already know what a laptop, phone, book, and keyboard look like.
+
+### Feature Extraction
+Raw bounding boxes aren't directly useful for classifying workspace state. So detections get converted into a fixed-length numeric feature vector — 15 numbers that describe the workspace at a higher level:
+
+| Feature | What it captures |
+|---------|-----------------|
+| `productive_count` | Number of work-related objects (laptop, book, keyboard) |
+| `distracting_count` | Number of distraction objects (phone, TV, remote) |
+| `focused_score` | `productive_ratio − distracting_ratio` |
+| `clutter_score` | How crowded the desk looks (normalised object count) |
+| `total_area_coverage` | What fraction of the frame objects occupy |
+| `avg_confidence` | Mean YOLO detection confidence |
+| `has_laptop / has_phone / has_book / has_person` | Binary presence flags |
+
+This is the bridge between raw computer vision and machine learning.
+
+### Context Classification with TensorFlow
+A small fully-connected neural network takes the 15 features as input and outputs a single probability — how likely the workspace is "Focused". The architecture is intentionally lightweight:
+
+```
+Input (15 features)
+      ↓
+Dense(64) → BatchNorm → Dropout(0.3)
+      ↓
+Dense(32) → BatchNorm → Dropout(0.2)
+      ↓
+Dense(16)
+      ↓
+Dense(1, sigmoid)  →  Focused probability
+```
+
+Training uses binary cross-entropy loss, Adam optimizer, early stopping, and learning rate scheduling. Total parameters: ~4,000 — small enough to train in seconds on CPU.
+
+### Visualization with OpenCV
+OpenCV draws the results directly onto each video frame: color-coded bounding boxes (green = productive, red = distracting, cyan = neutral), a top banner showing the current workspace state and confidence, a live focus bar, and per-frame stats in the corner.
 
 ---
 
@@ -46,35 +80,35 @@ This project combines:
 ```
 smart-workspace-monitor/
 │
-├── README.md
-├── requirements.txt
-│
 ├── dataset/
-│   ├── raw_images/          # original desk images
+│   ├── raw_images/          # desk images used for testing
 │   ├── labels/              # YOLO label files (.txt)
 │   └── processed/
 │       └── images.csv       # feature-extracted dataset
 │
 ├── models/
-│   ├── yolo/                # yolov8n.pt (auto-downloaded)
+│   ├── yolo/                # yolov8n.pt (auto-downloaded on first run)
 │   └── context_classifier/
-│       ├── context_model.keras
-│       ├── scaler.pkl
-│       └── feature_cols.json
+│       ├── context_model.keras   # trained TF model
+│       ├── scaler.pkl            # fitted StandardScaler
+│       └── feature_cols.json     # feature column order
 │
 ├── src/
-│   ├── detect_objects.py        # Phase 1 — YOLO detection
-│   ├── extract_features.py      # Phase 2 — detections → CSV
-│   ├── train_context_model.py   # Phase 3 — train TF classifier
-│   ├── predict_context.py       # Phase 3 — single image prediction
-│   └── webcam_demo.py           # Phase 4 — real-time demo
+│   ├── detect_objects.py        # Phase 1 — run YOLO on images
+│   ├── extract_features.py      # Phase 2 — detections → feature CSV
+│   ├── train_context_model.py   # Phase 3 — train the classifier
+│   ├── predict_context.py       # Phase 3 — predict on a single image
+│   ├── webcam_demo.py           # Phase 4 — real-time webcam demo
+│   └── quick_test.py            # sanity check: webcam + YOLO working?
 │
 ├── results/
-│   ├── metrics/             # confusion matrix, ROC, training plots
-│   └── sample_outputs/      # annotated frame screenshots
+│   └── metrics/             # confusion matrix, ROC curve, training plots
 │
-└── notebooks/
-    └── experiments.ipynb    # EDA, evaluation, charts
+├── notebooks/
+│   └── experiments.ipynb    # EDA, evaluation charts, metrics summary
+│
+├── requirements.txt
+└── README.md
 ```
 
 ---
@@ -82,132 +116,130 @@ smart-workspace-monitor/
 ## Setup
 
 ```bash
-# 1. Clone
-git clone https://github.com/<aleesha-10>/smart-workspace-monitor.git
+# 1. Clone the repo
+git clone https://github.com/<your-username>/smart-workspace-monitor.git
 cd smart-workspace-monitor
 
-# 2. Create virtual environment
+# 2. Create a virtual environment
 python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # Mac/Linux
 
 # 3. Install dependencies
 pip install -r requirements.txt
 ```
 
-YOLOv8n weights (~6 MB) are downloaded automatically on first run.
+YOLOv8n weights (~6 MB) download automatically on first run. No GPU required — everything runs on CPU.
 
 ---
 
 ## Usage
 
-### Phase 1 — Object detection on images
+### Quickest start — webcam demo
 
 ```bash
-python src/detect_objects.py --image path/to/desk.jpg
+python src/webcam_demo.py
 ```
 
-### Phase 2 — Extract features from a folder of images
+Point your camera at your desk. Controls: `Q` quit · `S` save frame · `P` pause.
 
-```bash
-python src/extract_features.py --input dataset/raw_images --output dataset/processed/images.csv
-```
+---
 
-### Phase 3 — Train the context classifier
-
-```bash
-python src/train_context_model.py
-```
-
-Reads `dataset/processed/images.csv`, trains a TensorFlow Dense network, and saves:
-- `models/context_classifier/context_model.keras`
-- `results/metrics/confusion_matrix.png`
-- `results/metrics/training_history.png`
-- `results/metrics/metrics.json`
-
-### Phase 3 — Predict on a single image
+### Run on a single image
 
 ```bash
 python src/predict_context.py --image path/to/desk.jpg --save
 ```
 
-### Phase 4 — Real-time webcam demo
+Saves an annotated image to `results/sample_outputs/`.
+
+---
+
+### Train the classifier yourself
 
 ```bash
-python src/webcam_demo.py                     # default webcam
-python src/webcam_demo.py --source 1          # second camera
-python src/webcam_demo.py --source desk.mp4   # video file
+# Step 1: extract features from your labeled images
+python src/extract_features.py --input dataset/raw_images --output dataset/processed/images.csv
+
+# Step 2: train
+python src/train_context_model.py
 ```
 
-**Controls:** `Q` / `ESC` quit &nbsp;|&nbsp; `S` save frame &nbsp;|&nbsp; `P` pause
+Outputs saved to `models/context_classifier/` and `results/metrics/`.
 
 ---
 
-## Pipeline
+### Explore in the notebook
 
+```bash
+jupyter notebook notebooks/experiments.ipynb
 ```
-Image / Webcam
-      ↓
-YOLOv8 Object Detection
-      ↓
-Feature Extraction (object counts, ratios, area coverage)
-      ↓
-TensorFlow Context Classifier
-      ↓
-OpenCV Visualization + Result
-```
+
+Covers: class distribution, feature correlation heatmap, feature importance, confusion matrix, ROC curve, and metrics summary.
 
 ---
 
-## Model Architecture
+## Evaluation
 
-```
-Input (15 features)
-      ↓
-Dense(64, relu) → BatchNorm → Dropout(0.3)
-      ↓
-Dense(32, relu) → BatchNorm → Dropout(0.2)
-      ↓
-Dense(16, relu)
-      ↓
-Dense(1, sigmoid)  →  Focused probability
-```
+After training on the extracted feature dataset:
 
-**Features used:**
+| Metric | Value |
+|--------|-------|
+| Test accuracy | see `results/metrics/metrics.json` |
+| ROC AUC | see `results/metrics/metrics.json` |
 
-| Feature | Description |
-|---------|-------------|
-| `total_objects` | Total YOLO detections |
-| `productive_count` | Laptops, books, keyboards |
-| `distracting_count` | Phones, TVs, remotes |
-| `focused_score` | `productive_ratio − distracting_ratio` |
-| `clutter_score` | Normalised object count |
-| `avg_confidence` | Mean YOLO detection confidence |
-| `has_laptop/phone/book/person` | Binary presence flags |
+Plots saved to `results/metrics/`:
+- `confusion_matrix.png`
+- `training_history.png`
+- `eval_cm_roc.png`
+- `eda_feature_importance.png`
+- `eda_correlation.png`
 
----
+### Understanding the metrics
 
-## Evaluation Metrics
+**Precision** — of all the times the model said "Focused", how often was it right.
 
-> Results saved to `results/metrics/` after running `train_context_model.py`
+**Recall** — of all the actual Focused workspaces, how many did the model catch.
 
-| Metric | Description |
-|--------|-------------|
-| Accuracy | Overall correct predictions |
-| AUC-ROC | Ability to distinguish classes across thresholds |
-| Confusion matrix | TP / FP / TN / FN breakdown |
-| mAP@0.5 | YOLO detection quality (IoU threshold 0.5) |
+**AUC-ROC** — measures how well the model separates the two classes across all possible thresholds. 1.0 is perfect, 0.5 is random guessing.
+
+**Confusion matrix** — breaks down predictions into true positives, false positives, true negatives, and false negatives. The most honest view of where the model fails.
 
 ---
 
-## What This Project Demonstrates
+## Object Classification
 
--  Multi-stage CV pipeline (detect → extract → classify → visualise)
-- Transfer learning with YOLOv8 pretrained on COCO
-- TensorFlow classifier with early stopping and learning rate scheduling
-- Feature engineering from raw bounding-box detections
-- Real-time OpenCV overlay with smoothed predictions
-- Reproducible ML: saved scalers, feature lists, model checkpoints
-- Experiment tracking notebook with EDA, ROC, confusion matrix
+Objects detected by YOLO are sorted into three categories that drive the classification:
+
+| Category | Objects | Effect |
+|----------|---------|--------|
+| Productive | laptop, book, keyboard, mouse, monitor | Increases focused score |
+| Distracting | cell phone, TV, remote, game pad | Decreases focused score |
+| Neutral | cup, bottle, chair, person | No direct effect |
+
+---
+
+## What I Learned Building This
+
+This project was built to get hands-on with a full computer vision pipeline from detection to classification to real-time visualization. Some specific things it covers:
+
+- How to use a pretrained YOLO model for inference without any custom training
+- How to bridge raw CV output (bounding boxes) into structured ML features
+- How to build and train a TensorFlow binary classifier with proper callbacks and evaluation
+- How BatchNormalization and Dropout interact during training
+- How to do real-time video processing with OpenCV without dropping too many frames on CPU
+- How to structure a multi-module ML project so each part is independently testable
+
+---
+
+## Limitations & Next Steps
+
+The current classifier was trained on a synthetic dataset with programmatically generated features. Real-world performance depends on collecting and labeling actual desk images. Some natural next steps:
+
+- Collect 200–500 real labeled desk images and retrain
+- Fine-tune YOLOv8 on a custom dataset with desk-specific classes (pen, notebook, headphones)
+- Add a session timer that tracks how long the workspace has been in each state
+- Export the model to ONNX for faster CPU inference
 
 ---
 
