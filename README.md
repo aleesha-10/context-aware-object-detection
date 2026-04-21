@@ -13,7 +13,7 @@ A computer vision system that watches your desk through a webcam, detects object
 
 ## What This Project Does
 
-Most productivity tools track time or block websites. This project takes a different approach — it looks at your physical workspace and decides whether you look like you're working or getting distracted, based on what objects are visible on your desk.
+ This project takes a different approach — it looks at your physical workspace and decides whether you look like you're working or getting distracted, based on what objects are visible on your desk.
 
 Point a webcam at your desk. The system detects objects like laptops, books, phones, and keyboards. It then computes a set of features from those detections — how many productive vs distracting items are visible, how cluttered the desk looks, what percentage of the frame is covered — and feeds those features into a small machine learning classifier that outputs a single verdict: **Focused** or **Distracted**, along with a confidence score.
 
@@ -24,7 +24,9 @@ The entire pipeline runs locally on CPU, in real time.
 ## How It Works — The Full Pipeline
 
 ```
-![Pipeline](docs/pipeline.png)
+
+<img width="165" height="150" alt="image" src="https://github.com/user-attachments/assets/cebf7f31-2fdb-4bb8-a09a-a7de6adef93c" />
+
 ```
 
 Each stage is a separate, independently runnable module. You can swap out the classifier, change the feature set, or plug in a different detector without touching the rest.
@@ -206,6 +208,17 @@ Plots saved to `results/metrics/`:
 **Confusion matrix** — breaks down predictions into true positives, false positives, true negatives, and false negatives. The most honest view of where the model fails.
 
 ---
+
+### evaluation
+- coonfusion matrix
+
+<img width="653" height="547" alt="image" src="https://github.com/user-attachments/assets/4692af9e-0907-4339-b2b3-87f2afa3a895" />
+
+- training history
+
+  <img width="1189" height="390" alt="image" src="https://github.com/user-attachments/assets/4d590097-234f-4a91-9692-d12bbf68116b" />
+
+
 
 ## Object Classification
 
