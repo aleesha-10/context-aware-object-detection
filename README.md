@@ -24,81 +24,8 @@ The entire pipeline runs locally on CPU, in real time.
 ## How It Works — The Full Pipeline
 
 ```
+![Pipeline](docs/pipeline.svg)
 
-<svg width="100%" viewBox="0 0 680 580" role="img" xmlns="http://www.w3.org/2000/svg">
-<title>Smart Workspace Monitor pipeline diagram</title>
-<desc>Five-stage pipeline: webcam input, YOLO detection, feature extraction, TF classifier, OpenCV output</desc>
-
-<defs>
-<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-</marker>
-</defs>
-
-<!-- Stage 1: Input -->
-<rect x="215" y="30" width="250" height="56" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="340" y="52" text-anchor="middle" dominant-baseline="central">Webcam / image input</text>
-<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="340" y="70" text-anchor="middle" dominant-baseline="central">Live frame or still image</text>
-
-<line x1="340" y1="86" x2="340" y2="114" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-<!-- Stage 2: YOLO -->
-<rect x="175" y="116" width="330" height="56" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#26215C" x="340" y="138" text-anchor="middle" dominant-baseline="central">YOLOv8 object detection</text>
-<text font-family="sans-serif" font-size="12" fill="#534AB7" x="340" y="156" text-anchor="middle" dominant-baseline="central">Bounding boxes + class labels + confidence</text>
-
-<line x1="340" y1="172" x2="340" y2="200" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-<!-- Stage 3: Feature extraction -->
-<rect x="175" y="202" width="330" height="56" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#04342C" x="340" y="224" text-anchor="middle" dominant-baseline="central">Feature extraction</text>
-<text font-family="sans-serif" font-size="12" fill="#0F6E56" x="340" y="242" text-anchor="middle" dominant-baseline="central">15 numeric features from detections</text>
-
-<line x1="340" y1="258" x2="340" y2="286" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-<!-- Stage 4: Classifier -->
-<rect x="175" y="288" width="330" height="56" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#4A1B0C" x="340" y="310" text-anchor="middle" dominant-baseline="central">TensorFlow classifier</text>
-<text font-family="sans-serif" font-size="12" fill="#993C1D" x="340" y="328" text-anchor="middle" dominant-baseline="central">Dense network → Focused probability</text>
-
-<line x1="340" y1="344" x2="340" y2="372" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-<!-- Stage 5: OpenCV -->
-<rect x="175" y="374" width="330" height="56" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="340" y="396" text-anchor="middle" dominant-baseline="central">OpenCV visualization</text>
-<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="340" y="414" text-anchor="middle" dominant-baseline="central">Boxes, labels, score overlay</text>
-
-<line x1="300" y1="430" x2="280" y2="458" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
-<line x1="380" y1="430" x2="400" y2="458" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-<!-- Output: Focused -->
-<rect x="195" y="460" width="110" height="44" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#04342C" x="250" y="482" text-anchor="middle" dominant-baseline="central">Focused</text>
-
-<!-- Output: Distracted -->
-<rect x="375" y="460" width="110" height="44" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#4A1B0C" x="430" y="482" text-anchor="middle" dominant-baseline="central">Distracted</text>
-
-<!-- Side labels: YOLO outputs -->
-<rect x="40" y="120" width="108" height="48" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="12" fill="#534AB7" x="94" y="138" text-anchor="middle" dominant-baseline="central">laptop, phone</text>
-<text font-family="sans-serif" font-size="12" fill="#534AB7" x="94" y="154" text-anchor="middle" dominant-baseline="central">book, cup, person</text>
-<line x1="148" y1="144" x2="173" y2="144" stroke="#7F77DD" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-<!-- Side labels: features -->
-<rect x="40" y="206" width="108" height="48" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="12" fill="#0F6E56" x="94" y="221" text-anchor="middle" dominant-baseline="central">clutter_score</text>
-<text font-family="sans-serif" font-size="12" fill="#0F6E56" x="94" y="237" text-anchor="middle" dominant-baseline="central">focused_score ...</text>
-<line x1="148" y1="230" x2="173" y2="230" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-<!-- Side labels: model -->
-<rect x="40" y="292" width="108" height="48" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="12" fill="#993C1D" x="94" y="310" text-anchor="middle" dominant-baseline="central">Dense(64)</text>
-<text font-family="sans-serif" font-size="12" fill="#993C1D" x="94" y="326" text-anchor="middle" dominant-baseline="central">Dropout → Dense(1)</text>
-<line x1="148" y1="316" x2="173" y2="316" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arrow)"/>
-
-<text font-family="sans-serif" font-size="12" fill="#888780" x="340" y="560" text-anchor="middle">All stages run locally on CPU — no internet required after setup</text>
-</svg>
 ```
 
 Each stage is a separate, independently runnable module. You can swap out the classifier, change the feature set, or plug in a different detector without touching the rest.
