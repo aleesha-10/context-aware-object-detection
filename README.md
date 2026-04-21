@@ -105,6 +105,7 @@ smart-workspace-monitor/
 ├── notebooks/
 │   └── experiments.ipynb    # EDA, evaluation charts, metrics summary
 │
+├── test_setup.py            
 ├── requirements.txt
 └── README.md
 ```
