@@ -1,4 +1,4 @@
-# quick_test.py
+# quick_test.py renamed from webtest
 import cv2
 from ultralytics import YOLO
 

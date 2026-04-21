@@ -21,3 +21,9 @@ models/yolov8n.pt
 *.pt
 *.pth
 *.h5
+
+venv/
+models/yolo/yolov8n.pt
+__pycache__/
+*.pyc
+.env
