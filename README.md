@@ -23,10 +23,7 @@ The entire pipeline runs locally on CPU, in real time.
 
 ## How It Works — The Full Pipeline
 
-```
 ![Pipeline](docs/pipeline.svg)
-
-```
 
 Each stage is a separate, independently runnable module. You can swap out the classifier, change the feature set, or plug in a different detector without touching the rest.
 
